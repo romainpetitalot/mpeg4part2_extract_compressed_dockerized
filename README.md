@@ -13,6 +13,7 @@ This project makes use of [swig](http://www.swig.org/) and is based on [this exa
 For now, is supported:
 
 - Motion Vector decoding (P-frames)
+- Motion Vector decoding (B-frames)
 
 
 
@@ -67,8 +68,9 @@ Testing the installation:
 ```python
 import extract_mvs
 
-a = extract_mvs("my_file.mp4")
+a, b = extract_mvs("my_file.mp4")
 # a will be of shape (ts, w, h, 2) with the last channel being the x and y differencies
+# b will be of shape (ts, w, h, 1) and contains the source position of the block (i.e -1 = previous frame, 1 = next frame)
 ```
 
 
@@ -76,7 +78,7 @@ a = extract_mvs("my_file.mp4")
 
 - [x] Extraction of motion vectors
 - [x] Proper python setup file for local installation
+- [x] Handle both P and B-frames
 - [ ] Extraction of the motion vectors frame by frame
-- [ ] Handle both P and B-frames
 - [ ] Upload to PyPI
 - [ ] Extraction of the residual frames

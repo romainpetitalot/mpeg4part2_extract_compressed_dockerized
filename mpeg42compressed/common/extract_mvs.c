@@ -33,48 +33,49 @@ static int video_stream_idx = -1;
 static AVFrame *frame = NULL;
 static int video_frame_count = 0;
 
-static int decode_packet(const AVPacket *pkt) {
-  int ret = avcodec_send_packet(video_dec_ctx, pkt);
-  if (ret < 0) {
-    fprintf(stderr, "Error while sending a packet to the decoder: %s\n",
-            av_err2str(ret));
-    return ret;
-  }
+// static int decode_packet(const AVPacket *pkt) {
+//   int ret = avcodec_send_packet(video_dec_ctx, pkt);
+//   if (ret < 0) {
+//     fprintf(stderr, "Error while sending a packet to the decoder: %s\n",
+//             av_err2str(ret));
+//     return ret;
+//   }
 
-  while (ret >= 0) {
-    ret = avcodec_receive_frame(video_dec_ctx, frame);
-    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-      break;
-    } else if (ret < 0) {
-      fprintf(stderr, "Error while receiving a frame from the decoder: %s\n",
-              av_err2str(ret));
-      return ret;
-    }
+//   while (ret >= 0) {
+//     ret = avcodec_receive_frame(video_dec_ctx, frame);
+//     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+//       break;
+//     } else if (ret < 0) {
+//       fprintf(stderr, "Error while receiving a frame from the decoder: %s\n",
+//               av_err2str(ret));
+//       return ret;
+//     }
 
-    if (ret >= 0) {
-      int i;
-      AVFrameSideData *sd;
+//     if (ret >= 0) {
+//       int i;
+//       AVFrameSideData *sd;
 
-      video_frame_count++;
-      sd = av_frame_get_side_data(frame, AV_FRAME_DATA_MOTION_VECTORS);
-      if (sd) {
-        const AVMotionVector *mvs = (const AVMotionVector *)sd->data;
-        for (i = 0; i < sd->size / sizeof(*mvs); i++) {
-          const AVMotionVector *mv = &mvs[i];
-          printf("%d,%2d,%2d,%2d,%4d,%4d,%4d,%4d,0x%" PRIx64 "\n",
-                 video_frame_count, mv->source, mv->w, mv->h, mv->src_x,
-                 mv->src_y, mv->dst_x, mv->dst_y, mv->flags);
-        }
-      }
-      av_frame_unref(frame);
-    }
-  }
+//       video_frame_count++;
+//       sd = av_frame_get_side_data(frame, AV_FRAME_DATA_MOTION_VECTORS);
+//       if (sd) {
+//         const AVMotionVector *mvs = (const AVMotionVector *)sd->data;
+//         for (i = 0; i < sd->size / sizeof(*mvs); i++) {
+//           const AVMotionVector *mv = &mvs[i];
+//           printf("%d,%2d,%2d,%2d,%4d,%4d,%4d,%4d,0x%" PRIx64 "\n",
+//                  video_frame_count, mv->source, mv->w, mv->h, mv->src_x,
+//                  mv->src_y, mv->dst_x, mv->dst_y, mv->flags);
+//         }
+//       }
+//       av_frame_unref(frame);
+//     }
+//   }
 
-  return 0;
-}
+//   return 0;
+// }
 
-static int decode_packet_v2(const AVPacket *pkt, int **out, int width,
-                            int height) {
+static int decode_packet_v2(const AVPacket *pkt, int **out, int **out_source,
+                            int width, int height) {
+
   int ret = avcodec_send_packet(video_dec_ctx, pkt);
 
   width = (width + 15) / 16;
@@ -105,11 +106,18 @@ static int decode_packet_v2(const AVPacket *pkt, int **out, int width,
       // Realloc the full vector to the new video size
       *out = (int *)realloc(
           *out, video_frame_count * width * height * 2 * sizeof(int));
+      *out_source = (int *)realloc(
+          *out_source, video_frame_count * width * height * sizeof(int));
 
       // Set all the new values to 0
       for (size_t k = (video_frame_count - 1) * width * height * 2;
            k < video_frame_count * width * height * 2; ++k) {
         (*out)[k] = 0;
+      }
+
+      for (size_t k = (video_frame_count - 1) * width * height;
+           k < video_frame_count * width * height; ++k) {
+        (*out_source)[k] = 0;
       }
 
       sd = av_frame_get_side_data(frame, AV_FRAME_DATA_MOTION_VECTORS);
@@ -119,12 +127,18 @@ static int decode_packet_v2(const AVPacket *pkt, int **out, int width,
         for (i = 0; i < sd->size / sizeof(*mvs); i++) {
           const AVMotionVector *mv = &mvs[i];
 
+          // Set the motion vector
           (*out)[(video_frame_count - 1) * width * height * 2 +
-                 (mv->dst_x / 16) * width * 2 + (mv->dst_y / 16) * 2] =
+                 (mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2] =
               mv->dst_x - mv->src_x;
           (*out)[(video_frame_count - 1) * width * height * 2 +
-                 (mv->dst_x / 16) * width * 2 + (mv->dst_y / 16) * 2 + 1] =
+                 (mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2 + 1] =
               mv->dst_y - mv->src_y;
+
+          // Set the relative frames
+          (*out_source)[(video_frame_count - 1) * width * height +
+                        (mv->dst_y / 16) * height + (mv->dst_x / 16)] =
+              mv->source;
         }
       }
       av_frame_unref(frame);
@@ -178,10 +192,12 @@ static int open_codec_context(AVFormatContext *fmt_ctx, enum AVMediaType type) {
 }
 
 void extract_mvs(char *filename, int **out, int *out_dim1, int *out_dim2,
-                 int *out_dim3, int *out_dim4) {
-  int ret = 0;
+                 int *out_dim3, int *out_dim4, int **out_source,
+                 int *out_source_dim1, int *out_source_dim2,
+                 int *out_source_dim3, int *out_source_dim4) {
+  int ret = 0, save = 0, count = -1;
 
-  int width, height;
+  int width = -1, height = -1;
 
   fmt_ctx = NULL;
   video_dec_ctx = NULL;
@@ -230,160 +246,31 @@ void extract_mvs(char *filename, int **out, int *out_dim1, int *out_dim2,
 
   /* read frames from the file */
   while (av_read_frame(fmt_ctx, &pkt) >= 0) {
+    
     if (pkt.stream_index == video_stream_idx) {
-      ret = decode_packet_v2(&pkt, out, video_dec_ctx->width,
+      ret = decode_packet_v2(&pkt, out, out_source, video_dec_ctx->width,
                              video_dec_ctx->height);
     }
     av_packet_unref(&pkt);
-    if (ret < 0) break;
+    if (ret < 0) {
+      break;
+    }
   }
   /* flush cached frames */
-  decode_packet_v2(NULL, NULL, video_dec_ctx->width, video_dec_ctx->height);
+  decode_packet_v2(NULL, out, out_source, video_dec_ctx->width,
+                   video_dec_ctx->height);
 end:
   avcodec_free_context(&video_dec_ctx);
   avformat_close_input(&fmt_ctx);
   av_frame_free(&frame);
 
   *out_dim1 = video_frame_count;
-  *out_dim2 = width;
-  *out_dim3 = height;
+  *out_dim2 = height;
+  *out_dim3 = width;
   *out_dim4 = 2;
+
+  *out_source_dim1 = video_frame_count;
+  *out_source_dim2 = height;
+  *out_source_dim3 = width;
+  *out_source_dim4 = 1;
 }
-
-int main(int argc, char **argv) {
-  int ret = 0;
-  int *out = NULL;
-  int width, height;
-
-  AVPacket pkt = {0};
-
-  av_register_all();
-  avcodec_register_all();
-
-  if (argc != 2) {
-    fprintf(stderr, "Usage: %s <video>\n", argv[0]);
-    exit(1);
-  }
-  src_filename = argv[1];
-
-  if (avformat_open_input(&fmt_ctx, src_filename, NULL, NULL) < 0) {
-    fprintf(stderr, "%d\n",
-            avformat_open_input(&fmt_ctx, src_filename, NULL, NULL));
-    fprintf(stderr, "Could not open source file %s\n", src_filename);
-    exit(1);
-  }
-
-  if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
-    fprintf(stderr, "Could not find stream information\n");
-    exit(1);
-  }
-
-  open_codec_context(fmt_ctx, AVMEDIA_TYPE_VIDEO);
-
-  av_dump_format(fmt_ctx, 0, src_filename, 0);
-
-  if (!video_stream) {
-    fprintf(stderr, "Could not find video stream in the input, aborting\n");
-    ret = 1;
-    goto end;
-  }
-
-  width = video_dec_ctx->width;
-  height = video_dec_ctx->height;
-
-  frame = av_frame_alloc();
-  if (!frame) {
-    fprintf(stderr, "Could not allocate frame\n");
-    ret = AVERROR(ENOMEM);
-    goto end;
-  }
-
-  printf("framenum,source,blockw,blockh,srcx,srcy,dstx,dsty,flags\n");
-
-  /* read frames from the file */
-  while (av_read_frame(fmt_ctx, &pkt) >= 0) {
-    if (pkt.stream_index == video_stream_idx) {
-      ret = decode_packet_v2(&pkt, &out, width, height);
-      if (!(ret < 0)) {
-        printf("%d\n", video_frame_count);
-        printf("%d\n", out[0]);
-      }
-    }
-    av_packet_unref(&pkt);
-    if (ret < 0) break;
-  }
-
-  /* flush cached frames */
-  decode_packet_v2(NULL, NULL, video_dec_ctx->width, video_dec_ctx->height);
-
-end:
-  avcodec_free_context(&video_dec_ctx);
-  avformat_close_input(&fmt_ctx);
-  av_frame_free(&frame);
-  return ret < 0;
-}
-
-// int main(int argc, char **argv)
-// {
-//     int ret = 0;
-//     AVPacket pkt = { 0 };
-
-//     av_register_all();
-//     avcodec_register_all();
-
-//     if (argc != 2) {
-//         fprintf(stderr, "Usage: %s <video>\n", argv[0]);
-//         exit(1);
-//     }
-//     src_filename = argv[1];
-
-//     if (avformat_open_input(&fmt_ctx, src_filename, NULL, NULL) < 0) {
-//         fprintf(stderr, "%d\n", avformat_open_input(&fmt_ctx, src_filename,
-//         NULL, NULL)); fprintf(stderr, "Could not open source file %s\n",
-//         src_filename); exit(1);
-//     }
-
-//     if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
-//         fprintf(stderr, "Could not find stream information\n");
-//         exit(1);
-//     }
-
-//     open_codec_context(fmt_ctx, AVMEDIA_TYPE_VIDEO);
-
-//     av_dump_format(fmt_ctx, 0, src_filename, 0);
-
-//     if (!video_stream) {
-//         fprintf(stderr, "Could not find video stream in the input,
-//         aborting\n"); ret = 1; goto end;
-//     }
-
-//     fprintf(stderr, "%d\n", video_dec_ctx->width);
-//     fprintf(stderr, "%d\n", video_dec_ctx->height);
-
-//     frame = av_frame_alloc();
-//     if (!frame) {
-//         fprintf(stderr, "Could not allocate frame\n");
-//         ret = AVERROR(ENOMEM);
-//         goto end;
-//     }
-
-//     printf("framenum,source,blockw,blockh,srcx,srcy,dstx,dsty,flags\n");
-
-//     /* read frames from the file */
-//     while (av_read_frame(fmt_ctx, &pkt) >= 0) {
-//         if (pkt.stream_index == video_stream_idx)
-//             ret = decode_packet(&pkt);
-//         av_packet_unref(&pkt);
-//         if (ret < 0)
-//             break;
-//     }
-
-//     /* flush cached frames */
-//     decode_packet(NULL);
-
-// end:
-//     avcodec_free_context(&video_dec_ctx);
-//     avformat_close_input(&fmt_ctx);
-//     av_frame_free(&frame);
-//     return ret < 0;
-// }
