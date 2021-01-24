@@ -36,3 +36,6 @@
 *_wrap.c
 
 *.pyc
+*.egg*
+build/**
+dist/**
