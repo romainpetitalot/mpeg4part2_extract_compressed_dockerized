@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+.venv/**
+*.so
+*_wrap.c
+
+*.pyc
