@@ -1,6 +1,8 @@
-# mpeg4part2_extract_compressed
+# MPEG 4 part-2 compressed representation extraction
 
 This project aims to create a python module for the extraction of the compressed frame representation of MPEG4 part-2 files.
+
+**Disclaimers:** The whole extraction is not properly tested, you should at least visually check that you are getting the values you are expecting. 
 
 MPEG4 part-2 compression is based on difference encoding to reduce the size of the information transmitted.
 At somewhat regular interval a key frame is encoded (full frame encoding), then each subsequent frame is divided into sub-blocks and for each of the blocks, only the difference with the best matching block (motion vector information) in the reference frame is encoded (residual information).
@@ -11,6 +13,8 @@ This project makes use of [swig](http://www.swig.org/) and is based on [this exa
 For now, is supported:
 
 - Motion Vector decoding (P-frames)
+
+
 
 ## Requirements
 
@@ -64,6 +68,7 @@ Testing the installation:
 import extract_mvs
 
 a = extract_mvs("my_file.mp4")
+# a will be of shape (ts, w, h, 2) with the last channel being the x and y differencies
 ```
 
 
