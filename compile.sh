@@ -1,8 +1,13 @@
 #!/bin/bash
-# Script to compile and generate the motion vector extraction method
+# Test script for the manual compilation of the extract_mvs module
 
-swig -python extract_mvs.i
+rm -r bin
 
-gcc -fpic -c extract_mvs.c extract_mvs_wrap.c -I/usr/local/include/python3.6m
+swig -python mpeg42compressed/numpy/extract_mvs.i
 
-ld -shared extract_mvs.o extract_mvs_wrap.o -o _extract_mvs.so -lavutil -lavformat -lavcodec
+mkdir bin
+
+gcc -fpic -c mpeg42compressed/common/extract_mvs.c -o bin/extract_mvs.o -I/usr/local/include/python3.6m
+gcc -fpic -c mpeg42compressed/numpy/extract_mvs_wrap.c -o bin/extract_mvs_wrap.o -I/usr/local/include/python3.6m
+
+ld -shared bin/extract_mvs.o bin/extract_mvs_wrap.o -o mpeg42compressed/numpy/_extract_mvs.so -lavutil -lavformat -lavcodec
