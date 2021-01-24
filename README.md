@@ -6,7 +6,7 @@ MPEG4 part-2 compression is based on difference encoding to reduce the size of t
 At somewhat regular interval a key frame is encoded (full frame encoding), then each subsequent frame is divided into sub-blocks and for each of the blocks, only the difference with the best matching block (motion vector information) in the reference frame is encoded (residual information).
 See [this wikipedia page](https://en.wikipedia.org/wiki/Inter_frame) for a visual representation of the process.
 
-This project allows to access this compressed information.
+This project makes use of [swig](http://www.swig.org/) and is based on [this example](https://github.com/FFmpeg/FFmpeg/blob/master/doc/examples/extract_mvs.c)
 
 For now, is supported:
 
