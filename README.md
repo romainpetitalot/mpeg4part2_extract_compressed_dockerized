@@ -69,9 +69,9 @@ a = extract_mvs("my_file.mp4")
 
 # TODO
 
-- [x] extraction of motion vectors
-- [ ] proper python setup file for local installation
-- [ ] extraction of the motion vectors frame by frame
-- [ ] handle both P and B-frames
-- [ ] upload to PyPI
-- [ ] extraction of the residual frames
+- [x] Extraction of motion vectors
+- [ ] Proper python setup file for local installation
+- [ ] Extraction of the motion vectors frame by frame
+- [ ] Handle both P and B-frames
+- [ ] Upload to PyPI
+- [ ] Extraction of the residual frames
