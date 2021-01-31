@@ -232,3 +232,34 @@ end:
   *out_source_dim4 = 1;
 }
 
+
+void av_register_all_w(){
+  av_register_all();
+}
+
+void avcodec_register_all_w(){
+  avcodec_register_all();
+}
+
+AVFormatContext* AVFormatContext_w() {
+  AVFormatContext * ret =NULL;
+  return ret;
+}
+
+
+int avformat_open_input_w(char *filename, AVFormatContext *fmt_ctx){
+  return avformat_open_input(&fmt_ctx, filename, NULL, NULL);
+  // if (result < 0) {
+  //   fprintf(stderr, "Could not open source file %s\n", filename);
+  //   exit(1);
+  // }
+  // return fmt_ctx_v2;
+}
+
+void avformat_find_stream_info_w(AVFormatContext *fmt_ctx){
+  if (avformat_find_stream_info(fmt_ctx, NULL) < 0) {
+    fprintf(stderr, "Could not find stream information\n");
+    exit(1);
+  }
+}
+  
