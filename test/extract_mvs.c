@@ -35,7 +35,6 @@ static int video_frame_count = 0;
 
 static int decode_packet_v2(const AVPacket *pkt, int **out, int **out_source,
                             int width, int height) {
-
   int ret = avcodec_send_packet(video_dec_ctx, pkt);
 
   width = (width + 15) / 16;
@@ -191,7 +190,7 @@ void extract_mvs(char *filename, int **out, int *out_dim1, int *out_dim2,
   }
 
   frame = av_frame_alloc();
-  
+
   if (!frame) {
     fprintf(stderr, "Could not allocate frame\n");
     ret = AVERROR(ENOMEM);
@@ -203,7 +202,6 @@ void extract_mvs(char *filename, int **out, int *out_dim1, int *out_dim2,
 
   /* read frames from the file */
   while (av_read_frame(fmt_ctx, &pkt) >= 0) {
-    
     if (pkt.stream_index == video_stream_idx) {
       ret = decode_packet_v2(&pkt, out, out_source, video_dec_ctx->width,
                              video_dec_ctx->height);
@@ -232,91 +230,189 @@ end:
   *out_source_dim4 = 1;
 }
 
+void av_register_all_w() { av_register_all(); }
 
-void av_register_all_w(){
-  av_register_all();
-}
+void avcodec_register_all_w() { avcodec_register_all(); }
 
-void avcodec_register_all_w(){
-  avcodec_register_all();
-}
-
-AVFormatContext* init_AVFormatContext() {
-  AVFormatContext * ret =NULL;
+AVFormatContext **init_AVFormatContext() {
+  AVFormatContext **ret = NULL;
+  ret = malloc(sizeof(AVFormatContext *));
+  *ret = NULL;
   return ret;
 }
 
-AVCodecContext* init_AVCodecContext(){
-  AVCodecContext* ret = NULL;
+AVCodec **init_AVCodec() {
+  AVCodec **ret = NULL;
+  ret = malloc(sizeof(AVCodec *));
+  *ret = NULL;
   return ret;
 }
 
-AVStream* init_AVStream(){
-  AVStream* ret = NULL;
+AVStream **init_AVStream() {
+  AVStream **ret = NULL;
+  ret = malloc(sizeof(AVStream *));
+  *ret = NULL;
   return ret;
 }
 
-AVFrame* init_AVFrame(){
-  AVFrame* ret = NULL;
+AVCodecContext **init_AVCodecContext() {
+  AVCodecContext **ret = NULL;
+  ret = malloc(sizeof(AVCodecContext *));
+  *ret = NULL;
   return ret;
 }
 
-AVFormatContext* init_AVFormatContext() {
-
+AVFrame **init_AVFrame() {
+  AVFrame **ret = NULL;
+  ret = malloc(sizeof(AVFrame *));
+  *ret = NULL;
+  return ret;
 }
 
-AVCodecContext* init_AVCodecContext() {
-
+AVDictionary **init_AVDictionary() {
+  AVDictionary **ret = NULL;
+  ret = malloc(sizeof(AVDictionary *));
+  *ret = NULL;
+  return ret;
 }
 
-AVStream* init_AVStream() {
-
+AVPacket *init_AVPacket() {
+  AVPacket *ret = NULL;
+  ret = (AVPacket *)malloc(sizeof(AVPacket));
+  memset(ret, 0, sizeof(AVPacket));
+  return ret;
 }
 
-AVFrame* init_AVFrame() {
+void free_AVFormatContext(AVFormatContext **object) { free(object); }
 
+void free_AVCodec(AVCodec **object) { free(object); }
+
+void free_AVStream(AVStream **object) { free(object); }
+
+void free_AVCodecContext(AVCodecContext **object) { free(object); }
+
+void free_AVFrame(AVFrame **object) { free(object); }
+
+void free_AVDictionary(AVDictionary **object) { free(object); }
+
+void free_AVPacket(AVPacket *object) { free(object); }
+
+int avformat_open_input_w(char *filename, AVFormatContext **fmt_ctx) {
+  int ret = avformat_open_input(fmt_ctx, filename, NULL, NULL);
+  return ret;
 }
 
-AVDictionary* init_AVDictionary() {
-
+int avformat_find_stream_info_w(AVFormatContext **fmt_ctx) {
+  int ret = avformat_find_stream_info(*fmt_ctx, NULL);
+  return ret;
 }
 
-int avformat_open_input_w(char *filename, AVFormatContext *fmt_ctx) {
-
+int av_find_best_stream_w(AVFormatContext **fmt_ctx, AVCodec **dec) {
+  int ret = av_find_best_stream(*fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, dec, 0);
+  return ret;
 }
 
-int avformat_find_stream_info_w(AVFormatContext *fmt_ctx) {
-
+void av_get_stream(AVFormatContext **fmt_ctx, int stream_idx, AVStream **st) {
+  *st = (*fmt_ctx)->streams[stream_idx];
 }
 
-int av_find_best_stream_w(AVFormatContext *fmt_ctx, AVCodec *dec) {
-
+void avcodec_alloc_context3_w(AVCodec **dec, AVCodecContext **dec_ctx) {
+  *dec_ctx = avcodec_alloc_context3(*dec);
 }
 
-AVCodecContext * avcodec_alloc_context3_w(AVCodec *dec) {
-
+int avcodec_parameters_to_context_w(AVCodecContext **dec_ctx, AVStream **st) {
+  int ret = avcodec_parameters_to_context(*dec_ctx, (*st)->codecpar);
+  return ret;
 }
 
-int avcodec_parameters_to_context(AVCodecContext *dec_ctx, AVStream* st) {
-
+void av_dict_set_w(AVDictionary **opts) {
+  av_dict_set(opts, "flags2", "+export_mvs", 0);
 }
 
-void av_dict_set_w(AVDictionary* opts) {
-
+int avcodec_open2_w(AVCodecContext **dec_ctx, AVCodec **dec,
+                    AVDictionary **opts) {
+  int ret = avcodec_open2(*dec_ctx, *dec, opts);
+  return ret;
 }
 
-int avcodec_open2_w(AVCodecContext *dec_ctx, AVCodec *dec, AVDictionary *opts) {
-
+AVFrame * av_frame_alloc_w() {
+  return av_frame_alloc();
 }
 
-AVFrame* av_frame_alloc_w(){
+void close_w(AVCodecContext *video_dec_ctx, AVFormatContext *fmt_ctx,
+             AVFrame *frame) {}
 
+int av_read_frame_w(AVFormatContext **fmt_ctx, AVPacket *pkt) {
+  int ret;
+  ret = av_read_frame(*fmt_ctx, pkt);
+  return ret;
 }
 
-void close(AVCodecContext* video_dec_ctx, AVFormatContext *fmt_ctx, AVFrame* frame) {
+int av_get_packet_stream_idx(AVPacket *pkt) { return pkt->stream_index; }
 
+int avcodec_send_packet_w(AVCodecContext **dec_ctx, AVPacket *pkt) {
+  return avcodec_send_packet(*dec_ctx, pkt);
 }
 
-AVStream* get_stream(AVFormatContext *fmt_ctx, int stream_idx) {
-  
+int avcodec_receive_frame_w(AVCodecContext **dec_ctx, AVFrame *frame) {
+  return avcodec_receive_frame(*dec_ctx, frame);
+}
+
+int av_is_error(int ret) {
+  return (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF);
+}
+void av_packet_unref_w(AVPacket *pkt) { av_packet_unref(pkt); }
+
+void read_frame(AVFrame *frame, int width, int height, int **out,
+                int *out_dim1, int *out_dim2, int *out_dim3, int **out_source,
+                int *out_source_dim1, int *out_source_dim2,
+                int *out_source_dim3) {
+  int i;
+  AVFrameSideData *sd;
+
+  *out_dim1 = height;
+  *out_dim2 = width;
+  *out_dim3 = 2;
+
+  *out_source_dim1 = height;
+  *out_source_dim2 = width;
+  *out_source_dim3 = 1;
+
+  // Realloc the full vector to the new video size
+  *out = (int *)malloc(width * height * 2 * sizeof(int));
+  *out_source = (int *)malloc(width * height * sizeof(int));
+
+  // Set all the new values to 0
+  for (size_t k = 0; k < width * height * 2; ++k) {
+    (*out)[k] = 0;
+  }
+
+  for (size_t k = 0; k < width * height; ++k) {
+    (*out_source)[k] = 0;
+  }
+
+  sd = av_frame_get_side_data(frame, AV_FRAME_DATA_MOTION_VECTORS);
+  if (sd) {
+    const AVMotionVector *mvs = (const AVMotionVector *)sd->data;
+
+    for (i = 0; i < sd->size / sizeof(*mvs); i++) {
+      const AVMotionVector *mv = &mvs[i];
+      // Set the motion vector
+      (*out)[(mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2] =
+          mv->dst_x - mv->src_x;
+      (*out)[(mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2 + 1] =
+          mv->dst_y - mv->src_y;
+
+      // Set the relative frames
+      (*out_source)[(mv->dst_y / 16) * height + (mv->dst_x / 16)] = mv->source;
+    }
+  }
+  av_frame_unref(frame);
+}
+
+int av_get_width(AVCodecContext **dec_ctx) {
+  return ((*dec_ctx)->width + 15) / 16;
+}
+int av_get_height(AVCodecContext **dec_ctx) {
+  return ((*dec_ctx)->height + 15) / 16;
 }

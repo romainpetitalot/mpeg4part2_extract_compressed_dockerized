@@ -108,9 +108,61 @@ def avcodec_register_all_w():
     return _extract_mvs.avcodec_register_all_w()
 avcodec_register_all_w = _extract_mvs.avcodec_register_all_w
 
-def AVFormatContext_w():
-    return _extract_mvs.AVFormatContext_w()
-AVFormatContext_w = _extract_mvs.AVFormatContext_w
+def init_AVFormatContext():
+    return _extract_mvs.init_AVFormatContext()
+init_AVFormatContext = _extract_mvs.init_AVFormatContext
+
+def init_AVCodec():
+    return _extract_mvs.init_AVCodec()
+init_AVCodec = _extract_mvs.init_AVCodec
+
+def init_AVStream():
+    return _extract_mvs.init_AVStream()
+init_AVStream = _extract_mvs.init_AVStream
+
+def init_AVCodecContext():
+    return _extract_mvs.init_AVCodecContext()
+init_AVCodecContext = _extract_mvs.init_AVCodecContext
+
+def init_AVFrame():
+    return _extract_mvs.init_AVFrame()
+init_AVFrame = _extract_mvs.init_AVFrame
+
+def init_AVDictionary():
+    return _extract_mvs.init_AVDictionary()
+init_AVDictionary = _extract_mvs.init_AVDictionary
+
+def init_AVPacket():
+    return _extract_mvs.init_AVPacket()
+init_AVPacket = _extract_mvs.init_AVPacket
+
+def free_AVFormatContext(arg1):
+    return _extract_mvs.free_AVFormatContext(arg1)
+free_AVFormatContext = _extract_mvs.free_AVFormatContext
+
+def free_AVCodec(arg1):
+    return _extract_mvs.free_AVCodec(arg1)
+free_AVCodec = _extract_mvs.free_AVCodec
+
+def free_AVStream(arg1):
+    return _extract_mvs.free_AVStream(arg1)
+free_AVStream = _extract_mvs.free_AVStream
+
+def free_AVCodecContext(arg1):
+    return _extract_mvs.free_AVCodecContext(arg1)
+free_AVCodecContext = _extract_mvs.free_AVCodecContext
+
+def free_AVFrame(arg1):
+    return _extract_mvs.free_AVFrame(arg1)
+free_AVFrame = _extract_mvs.free_AVFrame
+
+def free_AVDictionary(arg1):
+    return _extract_mvs.free_AVDictionary(arg1)
+free_AVDictionary = _extract_mvs.free_AVDictionary
+
+def free_AVPacket(object):
+    return _extract_mvs.free_AVPacket(object)
+free_AVPacket = _extract_mvs.free_AVPacket
 
 def avformat_open_input_w(filename, fmt_ctx):
     return _extract_mvs.avformat_open_input_w(filename, fmt_ctx)
@@ -119,6 +171,74 @@ avformat_open_input_w = _extract_mvs.avformat_open_input_w
 def avformat_find_stream_info_w(fmt_ctx):
     return _extract_mvs.avformat_find_stream_info_w(fmt_ctx)
 avformat_find_stream_info_w = _extract_mvs.avformat_find_stream_info_w
+
+def av_find_best_stream_w(fmt_ctx, dec):
+    return _extract_mvs.av_find_best_stream_w(fmt_ctx, dec)
+av_find_best_stream_w = _extract_mvs.av_find_best_stream_w
+
+def av_get_stream(fmt_ctx, stream_idx, st):
+    return _extract_mvs.av_get_stream(fmt_ctx, stream_idx, st)
+av_get_stream = _extract_mvs.av_get_stream
+
+def avcodec_alloc_context3_w(dec, dec_ctx):
+    return _extract_mvs.avcodec_alloc_context3_w(dec, dec_ctx)
+avcodec_alloc_context3_w = _extract_mvs.avcodec_alloc_context3_w
+
+def avcodec_parameters_to_context_w(dec_ctx, st):
+    return _extract_mvs.avcodec_parameters_to_context_w(dec_ctx, st)
+avcodec_parameters_to_context_w = _extract_mvs.avcodec_parameters_to_context_w
+
+def av_dict_set_w(opts):
+    return _extract_mvs.av_dict_set_w(opts)
+av_dict_set_w = _extract_mvs.av_dict_set_w
+
+def avcodec_open2_w(dec_ctx, dec, opts):
+    return _extract_mvs.avcodec_open2_w(dec_ctx, dec, opts)
+avcodec_open2_w = _extract_mvs.avcodec_open2_w
+
+def av_frame_alloc_w():
+    return _extract_mvs.av_frame_alloc_w()
+av_frame_alloc_w = _extract_mvs.av_frame_alloc_w
+
+def av_read_frame_w(fmt_ctx, pkt):
+    return _extract_mvs.av_read_frame_w(fmt_ctx, pkt)
+av_read_frame_w = _extract_mvs.av_read_frame_w
+
+def av_get_packet_stream_idx(pkt):
+    return _extract_mvs.av_get_packet_stream_idx(pkt)
+av_get_packet_stream_idx = _extract_mvs.av_get_packet_stream_idx
+
+def avcodec_send_packet_w(dec_ctx, pkt):
+    return _extract_mvs.avcodec_send_packet_w(dec_ctx, pkt)
+avcodec_send_packet_w = _extract_mvs.avcodec_send_packet_w
+
+def avcodec_receive_frame_w(dec_ctx, frame):
+    return _extract_mvs.avcodec_receive_frame_w(dec_ctx, frame)
+avcodec_receive_frame_w = _extract_mvs.avcodec_receive_frame_w
+
+def av_is_error(ret):
+    return _extract_mvs.av_is_error(ret)
+av_is_error = _extract_mvs.av_is_error
+
+def av_packet_unref_w(pkt):
+    return _extract_mvs.av_packet_unref_w(pkt)
+av_packet_unref_w = _extract_mvs.av_packet_unref_w
+
+def read_frame(frame, width, height):
+    return _extract_mvs.read_frame(frame, width, height)
+read_frame = _extract_mvs.read_frame
+
+def av_get_width(dec_ctx):
+    return _extract_mvs.av_get_width(dec_ctx)
+av_get_width = _extract_mvs.av_get_width
+
+def av_get_height(dec_ctx):
+    return _extract_mvs.av_get_height(dec_ctx)
+av_get_height = _extract_mvs.av_get_height
+
+def close_w(video_dec_ctx, fmt_ctx, frame):
+    return _extract_mvs.close_w(video_dec_ctx, fmt_ctx, frame)
+close_w = _extract_mvs.close_w
 # This file is compatible with both classic and new-style classes.
 
 
