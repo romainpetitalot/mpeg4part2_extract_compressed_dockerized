@@ -1,4 +1,4 @@
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 
 # Third-party modules - we depend on numpy for everything
 import numpy
@@ -22,6 +22,7 @@ setup(name='mpeg42compressed',
       description="Library providing a Python function to extract the Motion Vectors from a MPEG4 part 2 video.",
       author='Benjamin Deguerre',
       url='https://github.com/D3lt4lph4/mpeg4part2_extract_compressed',
+      packages=find_packages(include=['mpeg42compressed.numpy']),
       ext_modules=[extract_mvs],
       py_modules=["mpeg42compressed.numpy.extract_mvs"],
       zip_safe=False)
