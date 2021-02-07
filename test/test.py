@@ -39,10 +39,15 @@ def convert(img: object,
     if target_type is None:
         target_type = np.uint8
 
-    # Scaling factor
-    a = (target_type_max - target_type_min) / (img_max - img_min)
-    # Centering factor
-    b = target_type_max - a * img_max
+   
+    if (img_max - img_min) == 0:
+        a = 0
+        b = 123 # MVs specific
+    else:
+        # Scaling factor
+        a = (target_type_max - target_type_min) / (img_max - img_min)
+        # Centering factor
+        b = target_type_max - a * img_max
 
     # Put the image in the desired range and convert to the required type
     new_img = (a * img + b).astype(target_type)
@@ -123,10 +128,7 @@ class MVSVideoReader(object):
         if self.is_done:
             return False, None
 
-        print("yoy")
-
         ret = av_read_frame_w(self.fmt_ctx, self.pkt)
-        print("yoy")
 
         # If < 0, eof or error
         if ret < 0:
@@ -152,14 +154,12 @@ class MVSVideoReader(object):
                     return True, [mv_frame, mv_target]
                 
         else:
-            print("yoy")
             if av_get_packet_stream_idx(self.pkt) == self.stream_idx:
                 ret = avcodec_send_packet_w(self.dec_ctx, self.pkt)
 
                 if ret < 0:
                     raise RuntimeError("Error while sending a packet to the decoder: {}.".format(ret))
 
-                print("yay")
                 while (ret >= 0):
                     ret = avcodec_receive_frame_w(self.dec_ctx, self.frame)
                     if av_is_error(ret):
@@ -168,13 +168,11 @@ class MVSVideoReader(object):
                     elif ret < 0:
                         raise RuntimeError("Error while receiving a frame from the decoder: {}".format(ret))
 
-                    print("yay")
                     if ret >= 0:
                         mv_frame, mv_target = read_frame(self.frame, self.width, self.height)
+                        av_packet_unref_w(self.pkt)
                         
                         return True, [mv_frame, mv_target]
-                
-            av_packet_unref_w(self.pkt)
 
         
 
@@ -182,30 +180,39 @@ if __name__ == "__main__":
 
     file_path = "/d2/thesis/datasets/mnist_qtv/01_linear_0-9/01_000/train/rgb_data/02491_rgb_data.mp4"
     file_path = "/data/thesis/datasets/qtv/05_parsed_data/01_data/E73.332A/2020_01_28/08_00_01/rgb_data/257_rgb_data.mp4"
+    file_path = "/data/thesis/datasets/qtv/05_parsed_data/01_data/E73.332A/2020_01_28/18_00_01/rgb_data/011_rgb_data.mp4"
     
     video_reader = MVSVideoReader(file_path)
+
+
+
+    cap = cv2.VideoCapture(file_path)
+
 
     ret = True
     i = 0
 
     while ret:
         ret, frame = video_reader.read()
+        _, rgb_frame = cap.read()
 
         if ret:
             mv_frame = frame[0]
-
-            print(mv_frame.shape)
-            print(mv_frame.dtype)
             
             w, h, _ = mv_frame.shape
 
-            temp_frame = np.zeros((w, h, 3))
-            temp_frame[:, :, :2] = mv_frame
+            temp_frame = np.zeros((w *16, h * 16, 3))
+
+            for w_mv in range(w):
+                for h_mv in range(h):
+                    temp_frame[w_mv*16:(w_mv+1)*16, h_mv*16:(h_mv+1)*16, :2] = mv_frame[w_mv, h_mv]
+            # temp_frame[:, :, :2] = mv_frame
 
             # min/max frame convertion, but its only for display
             mv_frame = convert(temp_frame)
 
             cv2.imshow('Motion Vectors', mv_frame)
+            cv2.imshow('RGB', rgb_frame)
 
             if cv2.waitKey(20) & 0xFF == ord('q'):
                 break

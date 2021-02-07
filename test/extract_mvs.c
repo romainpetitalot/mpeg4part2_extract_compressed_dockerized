@@ -88,15 +88,15 @@ static int decode_packet_v2(const AVPacket *pkt, int **out, int **out_source,
 
           // Set the motion vector
           (*out)[(video_frame_count - 1) * width * height * 2 +
-                 (mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2] =
+                 (mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2] =
               mv->dst_x - mv->src_x;
           (*out)[(video_frame_count - 1) * width * height * 2 +
-                 (mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2 + 1] =
+                 (mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2 + 1] =
               mv->dst_y - mv->src_y;
 
           // Set the relative frames
           (*out_source)[(video_frame_count - 1) * width * height +
-                        (mv->dst_y / 16) * height + (mv->dst_x / 16)] =
+                        (mv->dst_y / 16) * width + (mv->dst_x / 16)] =
               mv->source;
         }
       }
@@ -398,13 +398,13 @@ void read_frame(AVFrame *frame, int width, int height, int **out,
     for (i = 0; i < sd->size / sizeof(*mvs); i++) {
       const AVMotionVector *mv = &mvs[i];
       // Set the motion vector
-      (*out)[(mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2] =
+      (*out)[(mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2] =
           mv->dst_x - mv->src_x;
-      (*out)[(mv->dst_y / 16) * height * 2 + (mv->dst_x / 16) * 2 + 1] =
+      (*out)[(mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2 + 1] =
           mv->dst_y - mv->src_y;
 
       // Set the relative frames
-      (*out_source)[(mv->dst_y / 16) * height + (mv->dst_x / 16)] = mv->source;
+      (*out_source)[(mv->dst_y / 16) * width + (mv->dst_x / 16)] = mv->source;
     }
   }
   av_frame_unref(frame);
