@@ -8,6 +8,46 @@ from extract_mvs import avformat_open_input_w, avformat_find_stream_info_w, av_f
 
 from extract_mvs import av_read_frame_w, av_get_packet_stream_idx, avcodec_send_packet_w, avcodec_receive_frame_w, av_is_error, av_packet_unref_w, read_frame
 
+import cv2
+import numpy as np
+
+def convert(img: object,
+            img_min: int = None,
+            img_max: int = None,
+            target_type_min: int = 0,
+            target_type_max: int = 255,
+            target_type: object = None):
+    """ Converts an image to a given range of values.
+    
+        # Arguments:
+            - img: The image to convert, a numpy array.
+            - img_min: The min possible value of the image, if None, the min of the image is used.
+            - img_max: The max possible value of the image, if None, the max of the image is used.
+            - target_type_min: Target min value once converted.
+            - target_max_type: Target max value once converted.
+            - target_type: The numpy type to convert to.
+        
+        # Returns
+            The converted image. The converted image is not a pointer to the original image.
+    """
+    if img_min is None:
+        img_min = img.min()
+
+    if img_max is None:
+        img_max = img.max()
+
+    if target_type is None:
+        target_type = np.uint8
+
+    # Scaling factor
+    a = (target_type_max - target_type_min) / (img_max - img_min)
+    # Centering factor
+    b = target_type_max - a * img_max
+
+    # Put the image in the desired range and convert to the required type
+    new_img = (a * img + b).astype(target_type)
+
+    return new_img
 
 
 class MVSVideoReader(object):
@@ -83,39 +123,43 @@ class MVSVideoReader(object):
         if self.is_done:
             return False, None
 
+        print("yoy")
+
         ret = av_read_frame_w(self.fmt_ctx, self.pkt)
+        print("yoy")
 
         # If < 0, eof or error
         if ret < 0:
             self.is_done = True
             av_packet_unref_w(self.pkt)
 
-            if av_get_packet_stream_idx(None) == self.stream_idx:
-                ret = avcodec_send_packet_w(self.dec_ctx, None)
+            ret = avcodec_send_packet_w(self.dec_ctx, None)
 
-                if ret < 0:
-                    raise RuntimeError("Error while sending a packet to the decoder: {}.".format(ret))
+            if ret < 0:
+                raise RuntimeError("Error while sending a packet to the decoder: {}.".format(ret))
 
-                while (ret >= 0):
-                    ret = avcodec_receive_frame_w(self.dec_ctx, self.frame)
+            while (ret >= 0):
+                ret = avcodec_receive_frame_w(self.dec_ctx, self.frame)
 
-                    if av_is_error(ret):
-                        self.is_done = True
-                        return False, None
-                    elif ret < 0:
-                        raise RuntimeError("Error while receiving a frame from the decoder: {}".format(ret))
+                if av_is_error(ret):
+                    self.is_done = True
+                    return False, None
+                elif ret < 0:
+                    raise RuntimeError("Error while receiving a frame from the decoder: {}".format(ret))
 
-                    if ret >= 0:
-                        mv_frame, mv_target = read_frame(self.frame, self.width, self.height)
-                        return True, [mv_frame, mv_target]
+                if ret >= 0:
+                    mv_frame, mv_target = read_frame(self.frame, self.width, self.height)
+                    return True, [mv_frame, mv_target]
                 
         else:
+            print("yoy")
             if av_get_packet_stream_idx(self.pkt) == self.stream_idx:
                 ret = avcodec_send_packet_w(self.dec_ctx, self.pkt)
 
                 if ret < 0:
                     raise RuntimeError("Error while sending a packet to the decoder: {}.".format(ret))
 
+                print("yay")
                 while (ret >= 0):
                     ret = avcodec_receive_frame_w(self.dec_ctx, self.frame)
                     if av_is_error(ret):
@@ -124,8 +168,10 @@ class MVSVideoReader(object):
                     elif ret < 0:
                         raise RuntimeError("Error while receiving a frame from the decoder: {}".format(ret))
 
+                    print("yay")
                     if ret >= 0:
                         mv_frame, mv_target = read_frame(self.frame, self.width, self.height)
+                        
                         return True, [mv_frame, mv_target]
                 
             av_packet_unref_w(self.pkt)
@@ -135,6 +181,7 @@ class MVSVideoReader(object):
 if __name__ == "__main__":
 
     file_path = "/d2/thesis/datasets/mnist_qtv/01_linear_0-9/01_000/train/rgb_data/02491_rgb_data.mp4"
+    file_path = "/data/thesis/datasets/qtv/05_parsed_data/01_data/E73.332A/2020_01_28/08_00_01/rgb_data/257_rgb_data.mp4"
     
     video_reader = MVSVideoReader(file_path)
 
@@ -142,11 +189,27 @@ if __name__ == "__main__":
     i = 0
 
     while ret:
-        i += 1
-        print(i)
         ret, frame = video_reader.read()
 
-        # print(ret)
+        if ret:
+            mv_frame = frame[0]
+
+            print(mv_frame.shape)
+            print(mv_frame.dtype)
+            
+            w, h, _ = mv_frame.shape
+
+            temp_frame = np.zeros((w, h, 3))
+            temp_frame[:, :, :2] = mv_frame
+
+            # min/max frame convertion, but its only for display
+            mv_frame = convert(temp_frame)
+
+            cv2.imshow('Motion Vectors', mv_frame)
+
+            if cv2.waitKey(20) & 0xFF == ord('q'):
+                break
+
         # print(frame[0].shape)
         # print(frame[1].shape)
 
