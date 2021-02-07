@@ -45,7 +45,7 @@ def convert(img: object,
 
     return new_img
 
-file_path = "/d2/thesis/datasets/mnist_qtv/01_linear_0-9/01_000/train/rgb_data/02491_rgb_data.mp4"
+file_path = ""
 
 video_reader = MVSVideoReader(file_path)
 
@@ -70,7 +70,6 @@ while ret:
         for w_mv in range(w):
             for h_mv in range(h):
                 temp_frame[w_mv*16:(w_mv+1)*16, h_mv*16:(h_mv+1)*16, :2] = mv_frame[w_mv, h_mv]
-        # temp_frame[:, :, :2] = mv_frame
 
         # min/max frame convertion, but its only for display
         mv_frame = convert(temp_frame)
@@ -80,8 +79,5 @@ while ret:
 
         if cv2.waitKey(20) & 0xFF == ord('q'):
             break
-
-    # print(frame[0].shape)
-    # print(frame[1].shape)
 
 video_reader.close()
