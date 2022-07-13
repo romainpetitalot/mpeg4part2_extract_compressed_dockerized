@@ -61,14 +61,14 @@ cd ..
 python setup.py install
 ```
 
-## Testing the installation
+## Testing the installation
 
 There are two ways to use the provided package, either extracting the full information from the file, or frame by frame.
 
 Whole extraction:
 
 ```python
-import extract_mvs
+from mpeg42compressed.numpy.extract_mvs import extract_mvs
 
 a, b = extract_mvs("my_file.mp4")
 # a will be of shape (ts, w, h, 2) with the last channel being the x and y differencies
