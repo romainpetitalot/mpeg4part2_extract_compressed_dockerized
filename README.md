@@ -61,6 +61,8 @@ cd ..
 python setup.py install
 ```
 
+Je crois qu'on a besoin de faire le setup.py install 2 fois avec d'exécuter scripts/example.py car la première fois le fichier extract_mvs.py n'est pas existant est donc ça ne créé pas de module 
+
 ## Testing the installation
 
 There are two ways to use the provided package, either extracting the full information from the file, or frame by frame.

@@ -23,6 +23,8 @@
 
 #include <libavformat/avformat.h>
 #include <libavutil/motion_vector.h>
+#include <libavcodec/avcodec.h>
+
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL;
@@ -168,8 +170,8 @@ void extract_mvs(char *filename, int **out, int *out_dim1, int *out_dim2,
 
   AVPacket pkt = {0};
 
-  av_register_all();
-  avcodec_register_all();
+  // av_register_all(); //https://github.com/leandromoreira/ffmpeg-libav-tutorial/issues/29 cette fonction est deprecated et on a plus besoin de l'appeler
+  // avcodec_register_all(); idem
 
   if (avformat_open_input(&fmt_ctx, filename, NULL, NULL) < 0) {
     fprintf(stderr, "Could not open source file %s\n", filename);
@@ -230,9 +232,9 @@ end:
   *out_source_dim4 = 1;
 }
 
-void av_register_all_w() { av_register_all(); }
+// void av_register_all_w() { av_register_all(); }
 
-void avcodec_register_all_w() { avcodec_register_all(); }
+// void avcodec_register_all_w() { avcodec_register_all(); }
 
 AVFormatContext **init_AVFormatContext() {
   AVFormatContext **ret = NULL;
@@ -415,4 +417,8 @@ int av_get_width(AVCodecContext **dec_ctx) {
 }
 int av_get_height(AVCodecContext **dec_ctx) {
   return ((*dec_ctx)->height + 15) / 16;
+}
+
+int main() {
+    return 0;
 }
