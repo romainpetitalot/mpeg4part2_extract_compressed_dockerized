@@ -46,26 +46,27 @@ For the example:
 
 
 ```bash
-# Create virtual env
-mkdir .venv
+# Build the Docker container
+docker build -t extract_mvs .
 
-cd .venv
+# Run the container (add -v .:/app to have your host files and container files synchronized)
+docker run -p 8888:8888 -it extract_mvs
 
-python3 -m venv mpeg4
-
-source mpeg4/bin/activate
-
-cd ..
-
-# Install
+# Install (once in the container)
 python setup.py install
 ```
 
-Je crois qu'on a besoin de faire le setup.py install 2 fois avec d'exécuter scripts/example.py car la première fois le fichier extract_mvs.py n'est pas existant est donc ça ne créé pas de module 
 
 ## Testing the installation
 
 There are two ways to use the provided package, either extracting the full information from the file, or frame by frame.
+
+If you want to visualise the frames extracted, you must use the jupyter notebook file by executing this command line, you will be able to acces the .ipynb file by copying the file given in your web browser.
+
+``` 
+jupyter notebook --ip 0.0.0.0 --no-browser --allow-root
+```
+
 
 Whole extraction:
 

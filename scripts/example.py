@@ -45,7 +45,7 @@ def convert(img: object,
 
     return new_img
 
-file_path = ""
+file_path = "./scripts/singleball.mp4"
 
 video_reader = MVSVideoReader(file_path)
 
@@ -74,8 +74,9 @@ while ret:
         # min/max frame convertion, but its only for display
         mv_frame = convert(temp_frame)
 
-        cv2.imshow('Motion Vectors', mv_frame)
-        cv2.imshow('RGB', rgb_frame)
+        print(np.shape(mv_frame))
+        #cv2.imshow('Motion Vectors', mv_frame)
+        #cv2.imshow('RGB', rgb_frame)
 
         if cv2.waitKey(20) & 0xFF == ord('q'):
             break

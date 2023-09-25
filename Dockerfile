@@ -3,7 +3,7 @@ FROM gcc
 WORKDIR /app
 
 RUN apt update && apt -y install make yasm pkg-config libgl1 swig 
-RUN apt -y install python3 python3-pip python3-numpy 
+RUN apt -y install python3 jupyter-notebook python3-pip python3-numpy 
 
 # RUN apt-get install libcunit1 libcunit1-doc libcunit1-dev
 
@@ -14,8 +14,6 @@ COPY . /app
 RUN git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg
 
 RUN cd ffmpeg && git checkout release/6.0 
-
-RUN cp -r mpeg42compressed/common/* ffmpeg/
 
 RUN cd ffmpeg && ./configure --enable-shared --enable-debug=3 
 
