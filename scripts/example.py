@@ -1,4 +1,6 @@
 from mpeg42compressed.numpy.mvs_videoreader import MVSVideoReader
+from mpeg42compressed.numpy.extract_mvs import extract_mvs
+
 import cv2
 import numpy as np
 
@@ -47,6 +49,11 @@ def convert(img: object,
 
 file_path = "./scripts/singleball.mp4"
 
+a, b = extract_mvs(file_path)
+
+print(np.shape(a))
+print(np.shape(b))
+
 video_reader = MVSVideoReader(file_path)
 
 
@@ -61,6 +68,7 @@ while ret:
     _, rgb_frame = cap.read()
 
     if ret:
+        i += 1
         mv_frame = frame[0]
         
         w, h, _ = mv_frame.shape
@@ -74,7 +82,8 @@ while ret:
         # min/max frame convertion, but its only for display
         mv_frame = convert(temp_frame)
 
-        print(np.shape(mv_frame))
+        print("vct", np.shape(mv_frame))
+        print("rgb",np.shape(rgb_frame))
         #cv2.imshow('Motion Vectors', mv_frame)
         #cv2.imshow('RGB', rgb_frame)
 
@@ -82,3 +91,5 @@ while ret:
             break
 
 video_reader.close()
+
+print(i)
