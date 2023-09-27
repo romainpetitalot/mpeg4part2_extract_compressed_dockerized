@@ -32,15 +32,7 @@ For now, is supported:
 
 ## Requirements
 
-For installation:
-
-- libav
-- swig
-- numpy
-
-For the example:
-
-- opencv-python
+docker (https://docs.docker.com/engine/install/)
 
 ## Installation
 
@@ -50,10 +42,7 @@ For the example:
 docker build -t extract_mvs .
 
 # Run the container (add -v .:/app to have your host files and container files synchronized)
-docker run -p 8888:8888 -it extract_mvs
-
-# Install (once in the container)
-python setup.py install
+docker run {-v .:/app} -p 8888:8888 -it extract_mvs
 ```
 
 
@@ -61,12 +50,12 @@ python setup.py install
 
 There are two ways to use the provided package, either extracting the full information from the file, or frame by frame.
 
-If you want to visualise the frames extracted, you must use the jupyter notebook file by executing this command line, you will be able to acces the .ipynb file by copying the file given in your web browser.
+If you want to visualise the motion vectors extracted, you must use the jupyter notebook file by executing this command line **inside the docker container**.
 
 ``` 
 jupyter notebook --ip 0.0.0.0 --no-browser --allow-root
 ```
-
+After copying one of the given link in your web browser, you will be able to acces the scripts/plotVect.ipynb file, containing the motion vector representation.
 
 Whole extraction:
 

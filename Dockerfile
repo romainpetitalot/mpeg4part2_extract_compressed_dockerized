@@ -24,3 +24,5 @@ RUN cd ffmpeg && cp ./ffmpeg /bin/ && cp ./ffprobe /bin/
 RUN cd ffmpeg && cp ./ffmpeg_g /bin/ && cp ./ffprobe_g /bin/
 
 RUN echo "/usr/local/lib/" > /etc/ld.so.conf && ldconfig
+
+RUN python3 setup.py install
