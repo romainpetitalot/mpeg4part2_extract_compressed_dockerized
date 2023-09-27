@@ -123,8 +123,8 @@ int main(int argc, char **argv)
     int ret = 0;
     AVPacket pkt = { 0 };
 
-    av_register_all();
-    avcodec_register_all();
+    // av_register_all();
+    // avcodec_register_all();
 
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <video>\n", argv[0]);

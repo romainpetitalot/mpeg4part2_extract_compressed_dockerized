@@ -1,4 +1,4 @@
-from mpeg42compressed.numpy.extract_mvs import av_register_all_w, avcodec_register_all_w
+# from mpeg42compressed.numpy.extract_mvs import av_register_all_w, avcodec_register_all_w
 
 from mpeg42compressed.numpy.extract_mvs import init_AVFormatContext, init_AVCodec, init_AVStream, init_AVCodecContext, init_AVFrame, init_AVDictionary, init_AVPacket
 
@@ -18,8 +18,8 @@ class MVSVideoReader(object):
         """
         self.is_done = False
 
-        av_register_all_w()
-        avcodec_register_all_w()
+        # av_register_all_w()
+        # avcodec_register_all_w()
 
         self.fmt_ctx = init_AVFormatContext()
         self.dec = init_AVCodec()

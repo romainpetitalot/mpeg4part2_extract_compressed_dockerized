@@ -23,6 +23,8 @@
 
 #include <libavformat/avformat.h>
 #include <libavutil/motion_vector.h>
+#include <libavcodec/avcodec.h>
+
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL;
@@ -63,10 +65,8 @@ static int decode_packet_v2(const AVPacket *pkt, int **out, int **out_source,
       video_frame_count++;
 
       // Realloc the full vector to the new video size
-      *out = (int *)realloc(
-          *out, video_frame_count * width * height * 2 * sizeof(int));
-      *out_source = (int *)realloc(
-          *out_source, video_frame_count * width * height * sizeof(int));
+      *out = (int *)realloc(*out, video_frame_count * width * height * 2 * sizeof(int));
+      *out_source = (int *)realloc(*out_source, video_frame_count * width * height * sizeof(int));
 
       // Set all the new values to 0
       for (size_t k = (video_frame_count - 1) * width * height * 2;
@@ -168,8 +168,8 @@ void extract_mvs(char *filename, int **out, int *out_dim1, int *out_dim2,
 
   AVPacket pkt = {0};
 
-  av_register_all();
-  avcodec_register_all();
+  // av_register_all(); //https://github.com/leandromoreira/ffmpeg-libav-tutorial/issues/29 cette fonction est deprecated et on a plus besoin de l'appeler
+  // avcodec_register_all(); idem
 
   if (avformat_open_input(&fmt_ctx, filename, NULL, NULL) < 0) {
     fprintf(stderr, "Could not open source file %s\n", filename);
@@ -230,9 +230,9 @@ end:
   *out_source_dim4 = 1;
 }
 
-void av_register_all_w() { av_register_all(); }
+// void av_register_all_w() { av_register_all(); }
 
-void avcodec_register_all_w() { avcodec_register_all(); }
+// void avcodec_register_all_w() { avcodec_register_all(); }
 
 AVFormatContext **init_AVFormatContext() {
   AVFormatContext **ret = NULL;
@@ -398,10 +398,8 @@ void read_frame(AVFrame *frame, int width, int height, int **out,
     for (i = 0; i < sd->size / sizeof(*mvs); i++) {
       const AVMotionVector *mv = &mvs[i];
       // Set the motion vector
-      (*out)[(mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2] =
-          mv->dst_x - mv->src_x;
-      (*out)[(mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2 + 1] =
-          mv->dst_y - mv->src_y;
+      (*out)[(mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2] = mv->dst_x - mv->src_x;
+      (*out)[(mv->dst_y / 16) * width * 2 + (mv->dst_x / 16) * 2 + 1] = mv->dst_y - mv->src_y;
 
       // Set the relative frames
       (*out_source)[(mv->dst_y / 16) * width + (mv->dst_x / 16)] = mv->source;
@@ -415,4 +413,8 @@ int av_get_width(AVCodecContext **dec_ctx) {
 }
 int av_get_height(AVCodecContext **dec_ctx) {
   return ((*dec_ctx)->height + 15) / 16;
+}
+
+int main() {
+    return 0;
 }
